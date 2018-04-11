@@ -1,0 +1,98 @@
+stages:
+  - build
+
+variables:
+  GITLAB_API: "http://192.168.1.11:6221/api/v4/projects"
+  ZFTEST_ID: ""
+  ZFTEST_TOKEN: ""
+  MYSQL_ROOT_PASSWORD: "Mysql1234#"
+  HOST_IP: "192.168.1.15"
+  EUREKA_PORT: "21112"
+  NEXUS_URL: "http://192.168.1.11:8081/repository/maven-releases/"
+  APP_DOCKER_IMAGE: "docker.zifang.com/zfch"
+  APP_DOCKER_PARAMETER: "-tid -p 20081:80 -p 28081:8080 -p 21112:1111 -p 23307:3306 -e $MYSQL_ROOT_PASSWORD -e $HOST_IP -e $EUREKA_PORT -v /data:/data --restart=always --hostname=zfch --name=zfch-dev"
+
+build_job:
+  stage: build
+  script:
+    - echo $CI_PROJECT_DIR
+    - date "+%Y-%m-%d %H:%M:%S""    Fetching changes from ch-server"
+    - mvn clean package -Dmaven.test.skip=true -f ch-server-parent
+    
+    - rm -rf /home/gitlab-runner/ch/bin/eureka
+    - mkdir -p /home/gitlab-runner/ch/bin/eureka
+    - cp ch-server-eureka/target/ch-server-eureka-1.0.0.jar /home/gitlab-runner/ch/bin/eureka
+    
+    - rm -rf /home/gitlab-runner/ch/bin/config
+    - mkdir -p /home/gitlab-runner/ch/bin/config
+    - cp ch-server-config/target/ch-server-config-1.0.0.jar /home/gitlab-runner/ch/bin/config
+
+    - rm -rf /home/gitlab-runner/ch/bin/common
+    - mkdir -p /home/gitlab-runner/ch/bin/common
+    - cp ch-server-common/target/ch-server-common-1.0.0.jar /home/gitlab-runner/ch/bin/common
+    
+    - rm -rf /home/gitlab-runner/ch/bin/quote
+    - mkdir -p /home/gitlab-runner/ch/bin/quote
+    - cp ch-server-quote/target/ch-server-quote-1.0.0.jar /home/gitlab-runner/ch/bin/quote
+
+    - rm -rf /home/gitlab-runner/ch/bin/customer
+    - mkdir -p /home/gitlab-runner/ch/bin/customer
+    - cp ch-server-customer/target/ch-server-customer-1.0.0.jar /home/gitlab-runner/ch/bin/customer
+
+    - rm -rf /home/gitlab-runner/ch/bin/contract
+    - mkdir -p /home/gitlab-runner/ch/bin/contract
+    - cp ch-server-contract/target/ch-server-contract-1.0.0.jar /home/gitlab-runner/ch/bin/contract
+    
+    - rm -rf /home/gitlab-runner/ch/bin/product
+    - mkdir -p /home/gitlab-runner/ch/bin/product
+    - cp ch-server-product/target/ch-server-product-1.0.0.jar /home/gitlab-runner/ch/bin/product
+
+    - rm -rf /home/gitlab-runner/ch/bin/daily
+    - mkdir -p /home/gitlab-runner/ch/bin/daily
+    - cp ch-server-daily/target/ch-server-daily-1.0.0.jar /home/gitlab-runner/ch/bin/daily
+    
+    - rm -rf /home/gitlab-runner/ch/bin/uaa
+    - mkdir -p /home/gitlab-runner/ch/bin/uaa
+    - cp ch-server-uaa/target/ch-server-uaa-1.0.0.jar /home/gitlab-runner/ch/bin/uaa
+    
+    - rm -rf /home/gitlab-runner/ch/bin/approval
+    - mkdir -p /home/gitlab-runner/ch/bin/approval
+    - cp ch-server-approval/target/ch-server-approval-1.0.0.jar /home/gitlab-runner/ch/bin/approval
+
+    - rm -rf /home/gitlab-runner/ch/bin/todo
+    - mkdir -p /home/gitlab-runner/ch/bin/todo
+    - cp ch-server-todo/target/ch-server-todo-1.0.0.jar /home/gitlab-runner/ch/bin/todo
+    
+    - rm -rf /home/gitlab-runner/ch/bin/market
+    - mkdir -p /home/gitlab-runner/ch/bin/market
+    - cp ch-server-market/target/ch-server-market-1.0.0.jar /home/gitlab-runner/ch/bin/market
+
+    - rm -rf /home/gitlab-runner/ch/bin/message
+    - mkdir -p /home/gitlab-runner/ch/bin/message
+    - cp ch-server-message/target/ch-server-message-1.0.0.jar /home/gitlab-runner/ch/bin/message
+
+    - rm -rf /home/gitlab-runner/ch/bin/manager
+    - mkdir -p /home/gitlab-runner/ch/bin/manager
+    - cp ch-server-project-manager/target/ch-server-project-manager-1.0.0.jar /home/gitlab-runner/ch/bin/manager
+    
+    - rm -rf /home/gitlab-runner/ch/bin/finance
+    - mkdir -p /home/gitlab-runner/ch/bin/finance
+    - cp ch-server-finance/target/ch-server-finance-1.0.0.jar /home/gitlab-runner/ch/bin/finance
+    
+    - rm -rf /home/gitlab-runner/ch/bin/ticket
+    - mkdir -p /home/gitlab-runner/ch/bin/ticket
+    - cp ch-server-ticket/target/ch-server-ticket-1.0.0.jar /home/gitlab-runner/ch/bin/ticket
+    
+    - rm -rf /home/gitlab-runner/ch/bin/gateway
+    - mkdir -p /home/gitlab-runner/ch/bin/gateway
+    - cp ch-server-gateway/target/ch-server-gateway-1.0.0.jar /home/gitlab-runner/ch/bin/gateway
+    
+    - rm -rf /home/gitlab-runner/ch/bin/sql
+    - cp -rf sql /home/gitlab-runner/ch/bin/
+
+    - if [ "${RUN_NIGHTLY_BUILD}" != "true" ]; then exit 0; fi   
+    - cp -rf dockerfiles/*  /home/gitlab-runner/ch/bin/
+    - chmod u+x /home/gitlab-runner/ch/bin/script/*.sh
+    - cd /home/gitlab-runner/ch/bin/
+    - docker build -t $APP_DOCKER_IMAGE .
+

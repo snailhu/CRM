@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zifangdt.ch.finance.mapper.LocalConfigItemMapper">
+
+    <select id="journalTypeUsed" resultType="boolean">
+        SELECT COUNT(1)>0 FROM biz_journal WHERE TYPE=#{id} and status!=5
+    </select>
+
+    <select id="paymentWayUsed" resultType="boolean">
+        SELECT COUNT(1)>0 FROM biz_account WHERE payment_way=#{id}
+    </select>
+
+    <select id="getAllWithWhetherUsed" resultType="ConfigItem">
+        SELECT a.id,a.type,a.detail,(
+          CASE a.type WHEN 'journalTypes' THEN (SELECT COUNT(1)>0 FROM biz_journal WHERE TYPE=a.id and status!=5)
+          WHEN 'paymentWays' THEN (SELECT COUNT(1)>0 FROM biz_account WHERE payment_way=a.id)
+          ELSE 0
+          END
+          ) used
+        FROM cfg_item a
+    </select>
+
+</mapper>

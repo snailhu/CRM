@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zifangdt.ch.finance.mapper.BulkRecordMapper">
+
+    <select id="getList" resultType="BulkRecord">
+        select
+          id,status,apply_type,type,sum_money,create_id,create_time,create_organ_id,create_organ_name,operate_id,operate_time,journal_ids
+        from biz_bulk_record
+        <where>
+            <if test="applyType!=null">
+                and apply_type=#{applyType}
+            </if>
+            <if test="status!=null">
+                and status=#{status}
+            </if>
+            <if test="type!=null">
+                and type=#{type}
+            </if>
+            <if test="createOrganId!=null">
+                and create_organ_id=#{createOrganId}
+            </if>
+            <if test="operateId!=null">
+                and operate_id=#{operateId}
+            </if>
+            <if test="operateDateStart!=null">
+                and date(operate_time) &gt;= #{operateDateStart}
+            </if>
+            <if test="operateDateEnd!=null">
+                and date_sub(operate_time, interval 1 day) &lt;= #{operateDateEnd}
+            </if>
+        </where>
+    </select>
+</mapper>

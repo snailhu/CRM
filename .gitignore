@@ -1,0 +1,16 @@
+*/.classpath
+*/.project
+*/.settings
+logs
+*/target
+*/*.iml
+/.idea
+/demo
+generatorConfig.xml
+ch-server-market/src/main/resources/application.yml
+ch-server-gateway/src/main/resources/application.yml
+ch-server-message/src/main/resources/application.yml
+ch-server-ticket/src/main/resources/application.yml
+.idea
+mbg.properties
+.vscode

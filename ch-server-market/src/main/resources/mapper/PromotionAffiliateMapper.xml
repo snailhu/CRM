@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.market.mapper.PromotionAffiliateMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.market.PromotionAffiliate">
+    <id column="pa_id" jdbcType="BIGINT" property="id" />
+    <result column="pa_create_id" jdbcType="BIGINT" property="createId" />
+    <result column="pa_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="pa_modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="pa_modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="pa_user_id" jdbcType="BIGINT" property="userId" />
+    <result column="pa_promotion_id" jdbcType="BIGINT" property="promotionId" />
+    <result column="pa_visit_cnt" jdbcType="INTEGER" property="visitCnt" />
+    <result column="pa_join_cnt" jdbcType="INTEGER" property="joinCnt" />
+  </resultMap>
+  <resultMap id="MapWithPromotionName" type="com.zifangdt.ch.base.dto.market.PromotionAffiliate" extends="BaseResultMap">
+    <result column="p_name" jdbcType="VARCHAR" property="promotionName"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    pa.id as pa_id, pa.create_id as pa_create_id, pa.create_time as pa_create_time, pa.modify_id as pa_modify_id, 
+    pa.modify_time as pa_modify_time, pa.user_id as pa_user_id, pa.promotion_id as pa_promotion_id, 
+    pa.visit_cnt as pa_visit_cnt, pa.join_cnt as pa_join_cnt
+  </sql>
+  <select id="findByPromotionId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from promotion_affiliate pa
+    where pa.promotion_id = #{id}
+  </select>
+  <select id="findByUserAndPromotion" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from promotion_affiliate pa
+    where pa.promotion_id = #{promotionId} and pa.user_id = #{userId}
+  </select>
+  <select id="getPvForPromotion" resultType="java.lang.Long">
+    select ifnull(sum(pa.visit_cnt), 0)
+    from promotion_affiliate pa
+    where pa.promotion_id = #{promotionId}
+  </select>
+  <select id="findUserAffiliate" resultMap="MapWithPromotionName">
+    select
+    <include refid="Base_Column_List"/>
+    , p.name as p_name
+    from promotion_affiliate pa
+    join promotion p on pa.promotion_id = p.id
+    where pa.user_id = #{userId}
+  </select>
+</mapper>

@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.ticket.mapper.TicketMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.ticket.Ticket">
+    <id column="t_id" jdbcType="BIGINT" property="id"/>
+    <result column="t_create_id" jdbcType="BIGINT" property="createId"/>
+    <result column="t_create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    <result column="t_modify_id" jdbcType="BIGINT" property="modifyId"/>
+    <result column="t_modify_time" jdbcType="TIMESTAMP" property="modifyTime"/>
+    <result column="t_maintain_type" jdbcType="CHAR" property="maintainType"/>
+    <result column="t_serial_number" jdbcType="VARCHAR" property="serialNumber"/>
+    <result column="t_customer_id" jdbcType="BIGINT" property="customerId"/>
+    <result column="t_contact_name" jdbcType="VARCHAR" property="contactName"/>
+    <result column="t_contact_phone" jdbcType="VARCHAR" property="contactPhone"/>
+    <result column="t_contact_address" jdbcType="VARCHAR" property="contactAddress"/>
+    <result column="t_ticket_type" jdbcType="CHAR" property="ticketType"/>
+    <result column="t_ticket_status" jdbcType="CHAR" property="ticketStatus"/>
+    <result column="t_source_contract_type_id" jdbcType="BIGINT" property="sourceContractTypeId"/>
+    <result column="t_source_procedure_id" jdbcType="BIGINT" property="sourceProcedureId"/>
+    <result column="t_source" jdbcType="CHAR" property="source"/>
+    <result column="t_source_str" jdbcType="CHAR" property="sourceStr"/>
+    <result column="t_task_urgency" property="taskUrgency"/>
+    <result column="t_ticket_description" jdbcType="VARCHAR" property="ticketDescription"/>
+    <result column="t_start_time" jdbcType="TIMESTAMP" property="startTime"/>
+    <result column="t_deadline" jdbcType="TIMESTAMP" property="deadline"/>
+    <result column="t_attachments" jdbcType="CHAR" property="attachments"/>
+    <result column="t_contract_id" jdbcType="BIGINT" property="contractId"/>
+    <result column="t_project_id" jdbcType="BIGINT" property="projectId"/>
+    <result column="t_receive_info" jdbcType="CHAR" property="receiveInfo"/>
+    <result column="t_operator_id" jdbcType="BIGINT" property="operatorId"/>
+    <result column="t_is_delete" jdbcType="BOOLEAN" property="isDelete"/>
+    <result column="t_return_visit" jdbcType="VARCHAR" property="returnVisit"/>
+    <result column="t_clearing" jdbcType="VARCHAR" property="clearing"/>
+    <result column="t_project_procedure_id" jdbcType="VARCHAR" property="projectProcedureId"/>
+    <result column="t_assign_time" jdbcType="TIMESTAMP" property="assignTime"/>
+    <result column="t_finish_time" jdbcType="TIMESTAMP" property="finishTime"/>
+    <result column="t_remarks" jdbcType="CHAR" property="remarks"/>
+    <result column="t_ticket_type_id" jdbcType="BIGINT" property="ticketTypeId"/>
+    <result column="t_operate_start_time" jdbcType="TIMESTAMP" property="operateStartTime"/>
+    <result column="t_receipt" jdbcType="VARCHAR" property="receipt"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    t.id as t_id, t.create_id as t_create_id, t.create_time as t_create_time, t.modify_id as t_modify_id,
+    t.modify_time as t_modify_time, t.maintain_type as t_maintain_type, t.serial_number as t_serial_number,
+    t.customer_id as t_customer_id, t.contact_name as t_contact_name, t.contact_phone as t_contact_phone,
+    t.contact_address as t_contact_address, t.ticket_type as t_ticket_type, t.ticket_status as t_ticket_status,
+    t.source as t_source, t.source_str as t_source_str, t.ticket_description as t_ticket_description,
+    t.start_time as t_start_time, t.deadline as t_deadline, t.attachments as t_attachments,
+    t.contract_id as t_contract_id, t.project_id as t_project_id, t.receive_info as t_receive_info,
+    t.return_visit as t_return_visit, t.clearing as t_clearing, t.project_procedure_id as t_project_procedure_id,
+    t.operator_id as t_operator_id, t.task_urgency as t_task_urgency, t.assign_time as t_assign_time,
+    t.finish_time as t_finish_time, t.remarks as t_remarks, t.source_contract_type_id as t_source_contract_type_id,
+    t.source_procedure_id as t_source_procedure_id, t.ticket_type_id as t_ticket_type_id, t.receipt as t_receipt
+  </sql>
+
+  <select id="countFor" resultType="java.lang.Long">
+    select count(1)
+    from ticket where date(create_time) = #{date}
+  </select>
+  <select id="findTicketForProject" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from ticket t
+    where t.project_id = #{projectId} and t.clearing is not null
+  </select>
+  <select id="findBy" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from ticket t
+    <where>
+      is_delete = false
+      <if test="ticketStatus != null">
+        and ticket_status = #{ticketStatus}
+      </if>
+      <if test="search != null and search != ''">
+        and (serial_number like concat("%", #{search}, "%") or contact_name like concat("%", #{search}, "%"))
+      </if>
+      <if test="!userIds.isEmpty()">
+        create_id in
+        <foreach collection="userIds" item="userId" separator="," open="(" close=")">
+          #{userId}
+        </foreach>
+      </if>
+    </where>
+    order by create_time ${sort}
+  </select>
+  <select id="findReceiptTickets" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from ticket t
+    <where>
+      is_delete = false
+      <if test="serialNumber != null">
+        and serial_number like concat("%", #{serialNumber}, "%")
+      </if>
+      <if test="customerName != null">
+        and contact_name like concat("%", #{customerName}, "%")
+      </if>
+      <if test="taskUrgency != null">
+        and task_urgency = #{taskUrgency.intVerifier}
+      </if>
+      <if test="source != null">
+        and source = #{source}
+      </if>
+      <if test="customerServiceUserId != null">
+        and create_id = #{customerServiceUserId}
+      </if>
+      <if test="beginCreateTime != null">
+        and create_time &gt; #{beginCreateTime}
+      </if>
+      <if test="endCreateTime != null">
+        and create_time &lt; #{endCreateTime}
+      </if>
+      <if test="beginAssignTime != null">
+        and assign_time &gt; #{beginAssignTime}
+      </if>
+      <if test="endAssignTime != null">
+        and assign_time &lt; #{endAssignTime}
+      </if>
+      <if test="beginReceiptTime != null">
+        and receipt->"$.create_time" &gt; #{beginReceiptTime}
+      </if>
+      <if test="endReceiptTime != null">
+        and receipt->"$.create_time" &lt; #{endReceiptTime}
+      </if>
+      <if test="operatorId != null">
+        and operator_id = #{operatorId}
+      </if>
+      <if test="contractId != null">
+        and contract_id = #{contractId}
+      </if>
+      <if test="receiptStatus != null">
+        <if test="receiptStatus.name() == 'WAIT_CONFIRM'">
+          and receipt->"$.receiptStatus" = "CREATE"
+        </if>
+        <if test="receiptStatus.name() == 'WAIT_RECEIPT'">
+          and (receipt is null or receipt->"$.receiptStatus" = "REJECT")
+        </if>
+        <if test="receiptStatus.name() == 'REJECT'">
+          and receipt->"$.receiptStatus" = "REJECT"
+        </if>
+        <if test="receiptStatus.name() == 'HAS_RECEIPT'">
+          and receipt is not null
+        </if>
+      </if>
+    </where>
+    order by ${orderBy.getColumnName()} ${sort}
+  </select>
+  <select id="findForApp" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from ticket t
+    <where>
+      is_delete = false
+      <if test="search != null">
+        and (t.serial_number like concat("%", #{search}, "%") or t.contact_name like concat("%", #{search}, "%"))
+      </if>
+      <if test="createId != null">
+        and create_id = #{createId}
+      </if>
+      <if test="operatorId != null">
+        and operator_id = #{operatorId}
+      </if>
+      <if test="beginDeadline != null">
+        and deadline &gt;= #{beginDeadline}
+      </if>
+      <if test="endDeadline != null">
+        and deadline &lt;= #{endDeadline}
+      </if>
+      <if test="beginFinishTime != null">
+        and receipt is not null and receipt->"$.receiptStatus" = "CONFIRM" and receipt->"$.modifyTime" &gt;= #{beginFinishTime}
+      </if>
+      <if test="endFinishTime != null">
+        and receipt is not null and receipt->"$.receiptStatus" = "CONFIRM" and receipt->"$.modifyTime" &lt;= #{endFinishTime}
+      </if>
+      <if test="singleStatus != null">
+        <bind name="singleStatusName" value="singleStatus.toString()"/>
+        <if test="singleStatusName == 'NOT_FINISH'">
+          and receipt is not null and receipt->"$.receiptStatus" = "CREATE"
+        </if>
+        <if test="singleStatusName == 'WAIT_ASSIGN'">
+          and ticket_status = "WAIT_ASSIGN"
+        </if>
+        <if test="singleStatusName == 'ASSIGNED'">
+          and ticket_status = "ASSIGNED"
+        </if>
+        <if test="singleStatusName == 'ACCEPTED'">
+          and ticket_status = "ACCEPTED"
+        </if>
+        <if test="singleStatusName == 'ON_GOING'">
+          and ticket_status = "ON_GOING"
+        </if>
+        <if test="singleStatusName == 'WAIT_FINISH'">
+          and ticket_status = "WAIT_FINISH"
+        </if>
+        <if test="singleStatusName == 'FINISH'">
+          and ticket_status = "FINISH"
+        </if>
+      </if>
+      <if test="multiStatus != null and multiStatus.size != 0">
+        and ( false
+        <if test="wait_receipt == true">
+          or receipt is null
+        </if>
+        <if test="has_receipt == true">
+          or receipt is not null
+        </if>
+        <if test="reject == true">
+          or receipt->"$.receiptStatus" = "REJECT"
+        </if>
+        <if test="has_clearing == true">
+          or clearing is not null
+        </if>
+        <if test="wait_return_visit == true">
+          or return_visit is null
+        </if>
+        <if test="has_return_visit == true">
+          or return_visit is not null
+        </if>
+        <if test="wait_clearing == true">
+          or clearing is null
+        </if>
+        <if test="has_clearing_check == true">
+          or clearing->"$.actualTotal" > 0
+        </if>
+        )
+      </if>
+    </where>
+    order by ${orderBy.getColumnName()} ${sort}
+  </select>
+  <select id="getMulti" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from ticket t
+    where id in
+    <foreach collection="ids" item="id" separator="," open="(" close=")">
+      #{id}
+    </foreach>
+  </select>
+  <select id="findAdvanceBy" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from ticket t
+    <where>
+      is_delete = false
+      <if test="serialNumber != null">
+        and serial_number like concat("%", #{serialNumber}, "%")
+      </if>
+      <if test="customerName != null">
+        and contact_name like concat("%", #{customerName}, "%")
+      </if>
+      <if test="taskUrgency != null">
+        and task_urgency = #{taskUrgency.intVerifier}
+      </if>
+      <if test="ticketTypeSource != null">
+        and source = #{ticketTypeSource}
+      </if>
+      <if test="ticketStatus != null">
+        and ticket_status = #{ticketStatus}
+      </if>
+      <if test="beginCreateTime != null">
+        and date(create_time) &gt;= #{beginCreateTime}
+      </if>
+      <if test="endCreateTime != null">
+        and date(create_time) &lt;= #{endCreateTime}
+      </if>
+      <if test="beginStartTime != null">
+        and date(start_time) &gt;= #{beginStartTime}
+      </if>
+      <if test="endStartTime != null">
+        and date(start_time) &lt;= #{endStartTime}
+      </if>
+      <if test="beginAssignTime != null">
+        and date(assign_time) &gt;= #{beginAssignTime}
+      </if>
+      <if test="endAssignTime != null">
+        and date(assign_time) &lt;= #{endAssignTime}
+      </if>
+      <if test="beginDeadlineTime != null">
+        and date(deadline) &gt;= #{beginDeadlineTime}
+      </if>
+      <if test="endDeadlineTime != null">
+        and date(deadline) &lt;= #{endDeadlineTime}
+      </if>
+      <if test="beginReceiptTime != null">
+        and date(receipt->"$.create_time") &gt;= #{beginReceiptTime}
+      </if>
+      <if test="endReceiptTime != null">
+        and receipt->"$.create_time" &lt;= #{endReceiptTime}
+      </if>
+      <if test="beginReturnVisitTime != null">
+        and return_visit->"$.createTime" &gt;= #{beginReturnVisitTime}
+      </if>
+      <if test="endReturnVisitTime != null">
+        and return_visit->"$.createTime" &lt;= #{endReturnVisitTime}
+      </if>
+      <if test="beginClearingTime != null">
+        and clearing->"$.createTime" &gt;= #{beginClearingTime}
+      </if>
+      <if test="endClearingTime != null">
+        and clearing->"$.createTime" &lt;= #{endClearingTime}
+      </if>
+      <if test="beginFinishTime != null">
+        and finish_time &gt;= #{beginFinishTime}
+      </if>
+      <if test="endFinishTime != null">
+        and finish_time &lt;= #{endFinishTime}
+      </if>
+      <if test="operatorId != null">
+        and operator_id = #{operatorId}
+      </if>
+      <if test="contractId != null">
+        and contract_id = #{contractId}
+      </if>
+      <if test="customerServiceUserId != null">
+        and create_id = #{customerServiceUserId}
+      </if>
+      <if test="receiptOperatorId != null">
+        and receipt->"$.operatorId" = #{receiptOperatorId}
+      </if>
+      <if test="returnVisitOperatorId != null">
+        and return_visit->"$.userId" = #{returnVisitOperatorId}
+      </if>
+      <if test="clearingOperatorId != null">
+        and clearing->"$.userId" = #{clearingOperatorId}
+      </if>
+      <if test="returnVisitStatus != null">
+        <if test="returnVisitStatus.name() == 'WAIT_RETURN_VISIT'">
+          and return_visit is null
+        </if>
+        <if test="returnVisitStatus.name() == 'HAS_RETURN_VISIT'">
+          and return_visit is not null
+        </if>
+      </if>
+      <if test="clearingStatus != null">
+        <if test="clearingStatus.name() == 'WAIT_CLEARING'">
+          and clearing is null
+        </if>
+        <if test="clearingStatus.name() == 'HAS_CLEARING'">
+          and clearing is not null
+        </if>
+      </if>
+      <if test="receiptStatus != null">
+        <if test="receiptStatus.name() == 'WAIT_CONFIRM'">
+          and receipt->"$.receiptStatus" = "CREATE"
+        </if>
+        <if test="receiptStatus.name() == 'WAIT_RECEIPT'">
+          and (receipt is null or receipt->"$.receiptStatus" = "REJECT")
+        </if>
+        <if test="receiptStatus.name() == 'REJECT'">
+          and receipt->"$.receiptStatus" = "REJECT"
+        </if>
+        <if test="receiptStatus.name() == 'HAS_RECEIPT'">
+          and receipt is not null and receipt->"$.receiptStatus" = "CONFIRM"
+        </if>
+      </if>
+    </where>
+    order by ${orderBy.getColumnName()} ${sort}
+  </select>
+  <select id="findUnfinishCount" resultType="com.zifangdt.ch.base.dto.ticket.output.UserReceiptCount">
+    select t.operator_id as user_id, count(t.id) as cnt
+    from ticket t
+    where t.ticket_status = "ACCEPTED" or t.ticket_status = "ON_GOING"
+    or (t.ticket_status = "WAIT_FINISH" and t.receipt->"$.receiptStatus" = "CREATE")
+    group by operator_id
+  </select>
+</mapper>

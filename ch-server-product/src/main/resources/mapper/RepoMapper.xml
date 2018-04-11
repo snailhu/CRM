@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.product.mapper.RepoMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.product.entity.Repo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="create_id" jdbcType="BIGINT" property="createId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="is_default" jdbcType="BIT" property="isDefault" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="is_valid" jdbcType="BIT" property="isValid" />
+    <result column="repo_type" jdbcType="VARCHAR" property="repyType" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, create_id, create_time, modify_id, modify_time, is_default, name, address, is_valid, repo_type
+  </sql>
+  <select id="isRepoUsed" resultType="java.lang.Boolean">
+    select ifnull(sum(temp.no_empty), false) from (select number > 0 as no_empty from repo_product where repo_id = #{id}) temp
+  </select>
+  <select id="toggleValid">
+    update repo set is_valid = !is_valid where id = #{id}
+  </select>
+    <select id="findDefault" resultType="com.zifangdt.ch.base.dto.product.entity.Repo">
+      select
+      <include refid="Base_Column_List"/>
+      from repo
+      where is_default is true
+    </select>
+  <select id="findRepoNumberForProduct" resultType="com.zifangdt.ch.base.dto.product.entity.Repo">
+    select repo.*, ifnull(rp.number, 0) as number
+    from repo
+    left join (select rp.* from repo_product rp join product p on p.id = rp.product_id where p.id = #{productId}) rp on rp.repo_id = repo.id
+    where repo.is_valid=true;
+  </select>
+</mapper>

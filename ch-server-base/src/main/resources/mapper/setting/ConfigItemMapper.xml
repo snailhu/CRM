@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zifangdt.ch.base.mapper.cfg.ConfigItemMapper">
+
+    <select id="nameExists" resultType="boolean">
+        SELECT COUNT(1)>0
+        FROM cfg_item
+        WHERE TYPE=#{configType}
+        AND detail->'$.name'=#{name}
+    </select>
+
+    <select id="nameExistsAndEnabled" resultType="boolean">
+        SELECT COUNT(1)>0
+        FROM cfg_item
+        WHERE TYPE=#{configType}
+        AND detail->'$.name'=#{name} and detail->'$.disabled'=FALSE
+    </select>
+
+    <select id="typeExists" resultType="boolean">
+        SELECT COUNT(1)>0
+        FROM cfg_item
+        WHERE TYPE=#{configType}
+    </select>
+
+    <select id="getOneByType" resultType="ConfigItem">
+        SELECT id,type,detail
+        FROM cfg_item
+        WHERE TYPE=#{configType}
+    </select>
+
+    <select id="getListByType" resultType="ConfigItem">
+        SELECT id,type,detail
+        FROM cfg_item
+        WHERE TYPE=#{configType}
+    </select>
+
+    <select id="getListByTypes" resultType="ConfigItem">
+        SELECT id,type,detail
+        FROM cfg_item
+        WHERE TYPE in
+        <foreach collection="configTypes" item="configType" open="(" close=")" separator=",">
+            #{configType}
+        </foreach>
+    </select>
+
+    <select id="getListByIds" resultType="ConfigItem">
+        SELECT id,type,detail
+        FROM cfg_item
+        WHERE id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="getStepByUuid" resultType="ConfigItem">
+        SELECT id,type,detail
+        FROM cfg_item
+        WHERE detail->'$.uuid'=#{uuid}
+    </select>
+
+    <update id="updateApprovers">
+        update cfg_item
+        set detail=json_set(detail,'$.choices',JSON_Array(
+        <foreach collection="ids" item="id" separator=",">#{id}</foreach>
+        ))
+        where id=#{id}
+    </update>
+
+    <select id="getOneById" resultType="ConfigItem">
+        SELECT id,type,detail
+        FROM cfg_item
+        WHERE id=#{id}
+    </select>
+
+    <update id="disable">
+        update cfg_item
+        set detail=json_set(detail,'$.disabled',true)
+        where id=#{id}
+    </update>
+
+    <insert id="bulkInsert" parameterType="ConfigItem">
+        <foreach collection="list" item="n" separator=";">
+            <if test="n.id!=null">
+                insert into cfg_item(id,type,detail) values(#{n.id},#{n.type},#{n.detail})
+            </if>
+            <if test="n.id==null">
+                insert into cfg_item(type,detail) values(#{n.type},#{n.detail})
+            </if>
+        </foreach>
+    </insert>
+</mapper>

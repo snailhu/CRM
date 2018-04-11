@@ -1,0 +1,16 @@
+management:
+  security:
+    enabled: false
+
+predefined-configs:
+    purchaseFlowSteps:
+      - 采购单创建者发起审批,NONE,【权限拥有者】
+      - 部门经理审批采购单,ORGANIZATION_HEAD
+      - 财务审批采购单,FINANCIAL_STAFF,【财务人员审批】
+
+#spring:
+#  datasource:
+#    driver-class-name: com.mysql.jdbc.Driver
+#    password: zfbpm@1018
+#    url: jdbc:mysql://192.168.1.15:23306/ch_db_product?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+#    username: zfbpm

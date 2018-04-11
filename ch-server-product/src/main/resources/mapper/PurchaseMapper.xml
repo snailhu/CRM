@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.product.mapper.PurchaseMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.product.entity.Purchase">
+    <id column="pc_id" jdbcType="BIGINT" property="id" />
+    <result column="pc_create_id" jdbcType="BIGINT" property="createId" />
+    <result column="pc_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="pc_modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="pc_modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="pc_num" jdbcType="VARCHAR" property="num" />
+    <result column="pc_remark" jdbcType="VARCHAR" property="remark" />
+    <result column="pc_append_url" jdbcType="VARCHAR" property="appendUrl" />
+    <result column="pc_name" jdbcType="VARCHAR" property="name" />
+    <result column="pc_total_amount" jdbcType="INTEGER" property="totalAmount" />
+    <result column="pc_purchase_status" jdbcType="VARCHAR" property="purchaseStatus" />
+    <result column="pc_provider_id" jdbcType="BIGINT" property="providerId" />
+    <result column="pc_total_num" jdbcType="INTEGER" property="totalNum" />
+    <result column="pc_in_num" jdbcType="INTEGER" property="inNum" />
+    <result column="pc_comment" jdbcType="VARCHAR" property="comment" />
+    <result column="pc_process_instance_id" jdbcType="BIGINT" property="processInstanceId" />
+    <result column="pc_purchase_items" jdbcType="VARCHAR" property="purchaseItems"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    pc.id as pc_id, pc.create_id as pc_create_id, pc.create_time as pc_create_time, pc.modify_id as
+    pc_modify_id,
+    pc.modify_time as pc_modify_time, pc.num as pc_num, pc.name as pc_name, pc.total_amount as
+    pc_total_amount,
+    pc.purchase_status as pc_purchase_status, pc.provider_id
+    as pc_provider_id, pc.total_num as pc_total_num, pc.in_num as pc_in_num,
+    pc.comment as pc_comment, pc.process_instance_id pc_process_instance_id,
+    pc.purchase_items as pc_purchase_items
+  </sql>
+  <select id="countFor" resultType="java.lang.Long">
+    select count(1)
+    from purchase where date(create_time) = #{date}
+  </select>
+  <select id="findBy" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from purchase as pc
+    <where>
+      <if test="begin != null">
+        date(pc.create_time) &gt;= #{begin}
+      </if>
+      <if test="end != null">
+        and date(pc.create_time) &lt;= #{end}
+      </if>
+      <if test="purchaseStatus != null">
+        and pc.purchase_status = #{purchaseStatus}
+      </if>
+      <if test="name != null">
+        and pc.name like concat("%", #{name}, "%")
+      </if>
+      <if test="providerId != null">
+        and pc.provider_id = #{providerId}
+      </if>
+    </where>
+  </select>
+</mapper>

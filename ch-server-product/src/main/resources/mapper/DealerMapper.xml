@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.product.mapper.DealerMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.product.entity.Dealer">
+    <id column="dl_id" jdbcType="BIGINT" property="id" />
+    <result column="dl_create_id" jdbcType="BIGINT" property="createId" />
+    <result column="dl_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="dl_modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="dl_modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="dl_name" jdbcType="VARCHAR" property="name" />
+    <result column="dl_contact" jdbcType="VARCHAR" property="contact" />
+    <result column="dl_phone" jdbcType="VARCHAR" property="phone" />
+    <result column="dl_bank" jdbcType="VARCHAR" property="bank" />
+    <result column="dl_bank_account_name" jdbcType="VARCHAR" property="bankAccountName" />
+    <result column="dl_bank_account_number" jdbcType="VARCHAR" property="bankAccountNumber" />
+    <result column="dl_remark" jdbcType="VARCHAR" property="remark" />
+    <result column="dl_address" jdbcType="VARCHAR" property="address" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    dl.id as dl_id, dl.create_id as dl_create_id, dl.create_time as dl_create_time, dl.modify_id as dl_modify_id, 
+    dl.modify_time as dl_modify_time, dl.name as dl_name, dl.contact as dl_contact, dl.phone as dl_phone, 
+    dl.bank as dl_bank, dl.bank_account_name as dl_bank_account_name, dl.bank_account_number as dl_bank_account_number, 
+    dl.remark as dl_remark, dl.address as dl_address
+  </sql>
+
+  <delete id="deleteOne">
+    delete from dealer where id = #{id}
+  </delete>
+  <delete id="deleteMulti">
+    delete from dealer where id in
+    <foreach collection="ids" item="id" open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+  </delete>
+  <select id="findBy" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List" />
+    from dealer as dl
+    <where>
+      <if test="nameOrId != null">
+        id = #{nameOrId} or name like concat("%", #{nameOrId}, "%")
+      </if>
+      <if test="createIds != null">
+        or create_id in
+        <foreach collection="createIds" item="id" separator="," open="(" close=")">
+          #{id}
+        </foreach>
+      </if>
+    </where>
+  </select>
+</mapper>

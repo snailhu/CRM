@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zifangdt.ch.base.mapper.NewsMapper">
+
+    <select id="findListByRelatedId" resultType="News">
+        select id,type,arguments,happened_at,operator,redirect_type,redirect_args,tag,related_id
+        from com_news
+        where related_id=#{relatedId}
+        order by happened_at desc
+    </select>
+
+
+    <select id="findListByRelatedIdProject" resultType="News" >
+        select id,type,arguments,happened_at,operator,redirect_type,redirect_args,tag,related_id
+        from com_news
+        where 1=1 AND
+        <if test="relatedId !=null">
+            related_id=#{relatedId}
+        </if>
+        <if test="unitIds !=null and unitIds.size()>0">
+        OR related_id in
+        <foreach  index="index" item="item" collection="unitIds"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        </if>
+        order by happened_at desc
+    </select>
+
+    <select id="tags" resultType="News">
+        select tag
+        from com_news
+        where related_id=#{relatedId}
+    </select>
+
+    <select id="tagsProject" resultType="News">
+        select tag
+        from com_news
+        where 1=1 AND
+        <if test="relatedId !=null">
+            related_id=#{relatedId}
+        </if>
+
+        <if test="unitIds !=null and unitIds.size()>0">
+            OR related_id in
+            <foreach index="index" item="item" collection="unitIds"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+
+        </if>
+    </select>
+
+    <select id="findMine" resultType="News">
+        select id,type,arguments,happened_at,operator,redirect_type,redirect_args,related_id
+        from com_news
+        where operator=#{userId}
+        <if test="date!=null">
+            and DATE(happened_at)=#{date}
+        </if>
+        <if test="date==null">
+            and DATE(happened_at)=CURDATE()
+        </if>
+        order by happened_at desc
+    </select>
+</mapper>

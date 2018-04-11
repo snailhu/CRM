@@ -1,0 +1,10 @@
+predefined-configs:
+
+    journalTypes:
+      - 合同分期回款,REVENUE,系统预设账目类型，不支持修改。记录合同相关的回款业务,100,CONTRACT,CUSTOMER
+      - 工单回款,REVENUE,系统预设账目类型，不支持修改。记录工单相关的回款业务,102,TICKET,CUSTOMER
+      - 采购支出,EXPENSE,系统预设账目类型，不支持修改。记录采购相关的支出业务,103,PURCHASE,PROVIDER
+      - 工单结算,EXPENSE,系统预设账目类型，不支持修改。记录工单相关的支出业务,103,TICKET,STAFF
+      - 合作伙伴佣金,EXPENSE,系统预设账目类型，不支持修改。,103,CONTRACT,PARTNER
+      - 合同提成,EXPENSE,系统预设账目类型，不支持修改。,103,CONTRACT,STAFF
+      - 期初调整,REVENUE,系统预设账目类型，不支持修改。记录期初调整相关的业务,103

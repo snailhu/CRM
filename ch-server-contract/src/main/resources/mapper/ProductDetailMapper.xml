@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zifangdt.ch.contract.mapper.ProductDetailMapper">
+
+  <select id="findByProductId" resultType="com.zifangdt.ch.base.dto.contract.ProductDetail">
+    select *
+    from biz_contract_product_detail bcpd
+    join biz_contract bc on bcpd.contract_id = bc.id and bc.invalidated = false
+    where json_contains(`products`, '{"productId": ${productId}}')
+  </select>
+</mapper>

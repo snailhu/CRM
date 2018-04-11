@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zifangdt.ch.contract.mapper.cfg.LocalConfigItemMapper">
+
+    <update id="updateVersionByProcedureId">
+        update cfg_item
+        set detail=json_set(detail,'$.version',#{m})
+        where type='contractTypes'
+        and json_contains(detail,CONVERT(#{id},JSON),'$.procedures')
+    </update>
+
+    <select id="selectContractTypesByProcedureId" resultType="ConfigItem">
+        select id,type,detail
+        from cfg_item
+        where type='contractTypes'
+        and json_contains(detail,CONVERT(#{id},JSON),'$.procedures')
+    </select>
+
+</mapper>

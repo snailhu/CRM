@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.ticket.mapper.ReceiptMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.ticket.Receipt">
+    <id column="r_id" jdbcType="BIGINT" property="id" />
+    <result column="r_create_id" jdbcType="BIGINT" property="createId" />
+    <result column="r_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="r_modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="r_modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="r_ticket_id" jdbcType="BIGINT" property="ticketId" />
+    <result column="r_operator_id" jdbcType="BIGINT" property="operatorId" />
+    <result column="r_attachments" jdbcType="CHAR" property="attachments" />
+    <result column="r_receipt_info" jdbcType="VARCHAR" property="receiptInfo" />
+    <result column="r_workload" jdbcType="DECIMAL" property="workload" />
+    <result column="r_workload_type" jdbcType="CHAR" property="workloadType" />
+    <result column="r_receipt_status" jdbcType="CHAR" property="receiptStatus" />
+    <result column="r_reply_info" jdbcType="VARCHAR" property="replyInfo" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    r.id as r_id, r.create_id as r_create_id, r.create_time as r_create_time, r.modify_id as r_modify_id, 
+    r.modify_time as r_modify_time, r.ticket_id as r_ticket_id, r.operator_id as r_operator_id, 
+    r.attachments as r_attachments, r.receipt_info as r_receipt_info, r.workload as r_workload, 
+    r.workload_type as r_workload_type, r.receipt_status as r_receipt_status, r.reply_info as r_reply_info
+  </sql>
+  <select id="getTicketCurrentReceipt" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from receipt r where ticket_id = #{ticketId} order by create_time desc limit 1
+  </select>
+  <select id="getTicketReceipts" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from receipt r where ticket_id = #{ticketId} order by create_time desc
+  </select>
+    <select id="findUnfinishCount" resultType="UserReceiptCount">
+      select operator_id as user_id, count(id) as cnt
+      from receipt
+      where receipt_status = #{receiptStatus}
+      group by operator_id
+    </select>
+
+</mapper>

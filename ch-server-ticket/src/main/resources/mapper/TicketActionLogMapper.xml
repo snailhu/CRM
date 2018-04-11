@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.ticket.mapper.TicketActionLogMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.ticket.TicketActionLog">
+    <id column="tal_id" jdbcType="BIGINT" property="id"/>
+    <result column="tal_create_id" jdbcType="BIGINT" property="createId"/>
+    <result column="tal_create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    <result column="tal_modify_id" jdbcType="BIGINT" property="modifyId"/>
+    <result column="tal_modify_time" jdbcType="TIMESTAMP" property="modifyTime"/>
+    <result column="tal_user_id" jdbcType="BIGINT" property="userId"/>
+    <result column="tal_user_name" jdbcType="VARCHAR" property="userName"/>
+    <result column="tal_assigned_id" jdbcType="BIGINT" property="assignedId"/>
+    <result column="tal_assigned_name" jdbcType="VARCHAR" property="assignedName"/>
+    <result column="tal_ticket_id" jdbcType="BIGINT" property="ticketId"/>
+    <result column="tal_action_type" jdbcType="CHAR" property="actionType"/>
+    <result column="tal_release_version" jdbcType="VARCHAR" property="releaseVersion"/>
+    <result column="tal_platform" jdbcType="CHAR" property="platform"/>
+    <result column="tal_ip" jdbcType="INTEGER" property="ip"/>
+    <result column="tal_location" jdbcType="VARCHAR" property="location"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    tal.id as tal_id, tal.create_id as tal_create_id, tal.create_time as tal_create_time,
+    tal.modify_id as tal_modify_id, tal.modify_time as tal_modify_time, tal.user_id as tal_user_id,
+    tal.user_name as tal_user_name, tal.assigned_id as tal_assigned_id, tal.assigned_name as tal_assigned_name,
+    tal.ticket_id as tal_ticket_id, tal.action_type as tal_action_type,
+    tal.release_version as tal_release_version, tal.platform as tal_platform, tal.ip as tal_ip,
+    tal.location as tal_location
+  </sql>
+  <select id="getByTicketId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from ticket_action_log tal
+    where tal.ticket_id = #{ticketId}
+    order by tal.create_time desc
+  </select>
+</mapper>

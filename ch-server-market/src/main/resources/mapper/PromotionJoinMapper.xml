@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.market.mapper.PromotionJoinMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.market.PromotionJoin">
+    <id column="pj_id" jdbcType="BIGINT" property="id" />
+    <result column="pj_create_id" jdbcType="BIGINT" property="createId" />
+    <result column="pj_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="pj_modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="pj_modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="pj_status" jdbcType="VARCHAR" property="status" />
+    <result column="pj_owner_id" jdbcType="BIGINT" property="ownerId" />
+    <result column="pj_promotion_id" jdbcType="BIGINT" property="promotionId" />
+    <result column="pj_submit_info" jdbcType="VARCHAR" property="submitInfo" />
+    <result column="pj_relate_id" jdbcType="VARCHAR" property="relateId" />
+  </resultMap>
+  <resultMap id="MapWithPromotionName" type="com.zifangdt.ch.base.dto.market.PromotionJoin" extends="BaseResultMap">
+    <result column="p_name" jdbcType="VARCHAR" property="promotionName"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    pj.id as pj_id, pj.create_id as pj_create_id, pj.create_time as pj_create_time, pj.modify_id as pj_modify_id, 
+    pj.modify_time as pj_modify_time, pj.status as pj_status, pj.owner_id as pj_owner_id, pj.promotion_id as pj_promotion_id,
+    pj.submit_info as pj_submit_info, pj.relate_id as pj_relate_id
+  </sql>
+
+  <select id="getJoinNumberForPromotion" resultType="java.lang.Long">
+    select count(pj.id)
+    from prom_join pj
+    where pj.promotion_id = #{promotionId} and pj.status != "Invalid"
+  </select>
+
+  <select id="findByQuery" resultMap="MapWithPromotionName">
+    select
+    <include refid="Base_Column_List"/> ,
+    p.name as p_name
+    from prom_join as pj
+    join promotion as p on p.id = pj.promotion_id
+    <where>
+      <if test="search != null and search != ''">
+        p.name like concat("%", #{search}, "%") or pj.submit_info like concat("%", #{search}, "%")
+        <if test="ownerId != null">
+          or pj.owner_id = ${ownerId}
+        </if>
+      </if>
+      <if test="status != null">
+        and pj.status = "${status}"
+      </if>
+    </where>
+    order by pj.${orderBy.columnName} ${sort}
+  </select>
+  <select id="getDetail" resultMap="MapWithPromotionName">
+    select
+    <include refid="Base_Column_List"/>
+    , p.name as p_name
+    from prom_join as pj
+    join promotion as p on p.id = pj.promotion_id
+    where pj.id = #{id}
+  </select>
+  <select id="findByUserAndPromotion" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from prom_join pj
+    where pj.owner_id = #{userId} and pj.promotion_id = #{promotionId}
+  </select>
+  <select id="findByPromotion" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from prom_join pj
+    where pj.promotion_id = #{promotionId}
+  </select>
+  <select id="isJoinExist" resultType="java.lang.Boolean">
+    select exists(select id from prom_join where promotion_id = #{promotionId} and submit_info = #{info})
+  </select>
+</mapper>

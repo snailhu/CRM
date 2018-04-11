@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.product.mapper.ProductTypeMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.product.entity.ProductType">
+    <id column="pt_id" jdbcType="BIGINT" property="id" />
+    <result column="pt_create_id" jdbcType="BIGINT" property="createId" />
+    <result column="pt_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="pt_modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="pt_modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="pt_name" jdbcType="VARCHAR" property="name" />
+    <result column="pt_description" jdbcType="VARCHAR" property="description" />
+    <result column="pt_sort" jdbcType="INTEGER" property="sort" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    pt.id as pt_id, pt.create_id as pt_create_id, pt.create_time as pt_create_time, pt.modify_id as pt_modify_id,
+    pt.modify_time as pt_modify_time, pt.name as pt_name, pt.description as pt_description, pt.sort as pt_sort
+  </sql>
+  <update id="changeProductTypeId">
+    update product set product_type_id = #{destId} where product_type_id = #{sourceId}
+  </update>
+  <select id="getMaxSort" resultType="java.lang.Integer">
+    select ifnull(max(sort), 0) from product_type;
+  </select>
+  <select id="getLess" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from product_type pt
+    where pt.id != #{id} and sort &lt;= (select ifnull((select sort from product_type pt2 where pt2.id = #{afterId}), -1))
+  </select>
+  <select id="getGreat" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from product_type pt
+    where pt.id != #{id} and sort &gt; (select ifnull((select sort from product_type pt2 where pt2.id = #{afterId}) , -1))
+  </select>
+  <resultMap id="type_brands" type="com.zifangdt.ch.base.dto.product.output.ProductTypeBrand">
+    <result property="brands" jdbcType="VARCHAR" column="brands"/>
+    <result property="typeName" jdbcType="VARCHAR" column="type_name"/>
+  </resultMap>
+  <select id="getTypeBrand" resultMap="type_brands">
+    select group_concat(distinct p.brand separator ",") as brands, pt.name as type_name
+    from product p
+    join product_type pt on p.product_type_id = pt.id
+    group by pt.name
+  </select>
+  <select id="isProductOfTypeExist" resultType="java.lang.Boolean">
+    select exists(select 1 from product p where p.product_type_id = #{id});
+  </select>
+  <resultMap id="type_with_count" extends="BaseResultMap" type="com.zifangdt.ch.base.dto.product.entity.ProductType">
+    <result property="count" jdbcType="INTEGER" column="count"/>
+  </resultMap>
+  <select id="getByName" resultMap="type_with_count">
+    select
+    <include refid="Base_Column_List" />, count(p.id) as count
+    from product_type pt
+    left join product p on p.product_type_id = pt.id
+    <where>
+      <if test="name != null and name != ''">
+        pt.name like concat("%", #{name}, "%")
+      </if>
+    </where>
+    group by pt.id
+  </select>
+</mapper>

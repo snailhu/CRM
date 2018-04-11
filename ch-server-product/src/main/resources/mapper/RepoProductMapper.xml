@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.product.mapper.RepoProductMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.product.entity.RepoProduct">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="create_id" jdbcType="BIGINT" property="createId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="product_id" jdbcType="BIGINT" property="productId" />
+    <result column="number" jdbcType="INTEGER" property="number" />
+    <result column="repo_id" jdbcType="BIGINT" property="repoId" />
+    <result column="pre_out_number" jdbcType="INTEGER" property="preOutNumber" />
+    <result column="available_number" jdbcType="INTEGER" property="availableNumber" />
+    <result column="contract_number" jdbcType="INTEGER" property="contractNumber" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    ${alias}id ${prefix}id,
+    ${alias}create_id ${prefix}create_id,
+    ${alias}create_time ${prefix}create_time,
+    ${alias}modify_id ${prefix}modify_id,
+    ${alias}modify_time ${prefix}modify_time,
+    ${alias}product_id ${prefix}product_id,
+    ifnull(${alias}number, 0) ${prefix}number,
+    ${alias}repo_id ${prefix}repo_id,
+    ifnull(${alias}pre_out_number, 0) ${prefix}pre_out_number,
+    ifnull(${alias}available_number, 0) ${prefix}available_number,
+    ifnull(${alias}contract_number, 0) ${prefix}contract_number
+  </sql>
+  <delete id="deleteByRepo">
+    delete from repo_product where repo_id = #{repoId}
+  </delete>
+  <select id="findByProductId" resultType="com.zifangdt.ch.product.dto.RepoProductDetailDto">
+    select
+    <include refid="Base_Column_List">
+      <property name="alias" value="rp."/>
+      <property name="prefix" value=""/>
+    </include>,
+    p.name as product_name, r.name as repo_name, r.repo_type as repo_type
+    from repo r
+    left join repo_product rp on rp.repo_id = r.id
+    left join product p on rp.product_id = p.id
+    where rp.product_id = #{productId}
+  </select>
+  <select id="batchDelete">
+    delete from repo_product
+    where product_id in
+    <foreach collection="productIds" item="productId" separator="," open="(" close=")">
+      #{productId}
+    </foreach>
+  </select>
+  <select id="findBy" resultType="com.zifangdt.ch.base.dto.product.entity.RepoProduct">
+    select *
+    from repo_product rp
+    where rp.product_id = #{productId} and rp.repo_id = #{repoId}
+  </select>
+  <resultMap id="product_repo_category" type="com.zifangdt.ch.base.dto.product.RepoProductDetailDto1" extends="BaseResultMap">
+    <result column="p_number" property="productNumber" />
+    <result column="c_name" property="categoryName" />
+    <result column="p_name" property="productName" />
+    <result column="p_price" property="productPrice" />
+    <result column="p_cost" property="productCost" />
+    <result column="p_img" jdbcType="VARCHAR" property="img" />
+    <result column="p_alert_number" jdbcType="INTEGER" property="alertNumber" />
+    <result column="repo_name" jdbcType="VARCHAR" property="repoName" />
+  </resultMap>
+  <select id="findListBy" resultMap="product_repo_category">
+    select
+    <include refid="Base_Column_List">
+      <property name="alias" value="rp."/>
+      <property name="prefix" value=""/>
+    </include>,
+    p.name as p_name, c.name as c_name, p.number as p_number, p.price as p_price, p.cost as p_cost, p.img as p_img,
+    p.alert_number as p_alert_number,
+    r.name as repo_name, r.repo_type as repo_type
+    from product p
+    join category c on p.category_id = c.id
+    join repo r
+    left join repo_product rp on rp.product_id = p.id and rp.repo_id = r.id
+    <where>
+      <if test="productName != null">
+        p.name like concat("%", #{productName}, "%")
+      </if>
+      <if test="categoryId != null">
+        and (c.id = #{categoryId} or c.parent_path like concat("%/", #{categoryId}, "/%"))
+      </if>
+      <if test="repoId != null">
+        and r.id = #{repoId}
+      </if>
+      <if test="isStockAlert != null and isStockAlert == true">
+        and rp.available_number &lt; p.alert_number
+      </if>
+      <if test="excludeNoStock != null and excludeNoStock == true">
+        and rp.available_number != 0
+      </if>
+    </where>
+  </select>
+</mapper>

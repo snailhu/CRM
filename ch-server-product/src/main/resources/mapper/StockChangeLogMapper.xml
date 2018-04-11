@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.product.mapper.StockChangeLogMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.product.entity.StockChangeLog">
+    <id column="scl_id" jdbcType="BIGINT" property="id" />
+    <result column="scl_create_id" jdbcType="BIGINT" property="createId" />
+    <result column="scl_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="scl_modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="scl_modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="scl_stock_change_id" jdbcType="BIGINT" property="stockChangeId" />
+    <result column="scl_stock_change_type" jdbcType="VARCHAR" property="stockChangeType" />
+    <result column="scl_product_id" jdbcType="BIGINT" property="productId" />
+    <result column="scl_count" jdbcType="INTEGER" property="count" />
+    <result column="scl_before_number" jdbcType="INTEGER" property="beforeNumber" />
+    <result column="scl_repo_id" jdbcType="BIGINT" property="repoId" />
+    <result column="scl_after_number" jdbcType="INTEGER" property="afterNumber" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    scl.id as scl_id, scl.create_id as scl_create_id, scl.create_time as scl_create_time, 
+    scl.modify_id as scl_modify_id, scl.modify_time as scl_modify_time, scl.stock_change_id as scl_stock_change_id, 
+    scl.stock_change_type as scl_stock_change_type,
+    scl.product_id as scl_product_id, scl.count as scl_count, scl.after_number as scl_after_number,
+    scl.repo_id as scl_repo_id, scl.before_number as scl_before_number
+  </sql>
+  <resultMap id="log_product_repo" type="com.zifangdt.ch.base.dto.product.output.StockChangeLogBrief" extends="BaseResultMap">
+    <result column="p_name" property="productName" />
+    <result column="r_name" property="repoName" />
+    <result column="stock_number" property="stockNumber"/>
+    <result column="category_name" property="categoryName"/>
+    <result column="p_number" property="productNumber"/>
+  </resultMap>
+  <select id="getList" resultMap="log_product_repo">
+    select <include refid="Base_Column_List"/>, p.name as p_name, r.name as r_name, c.name as category_name,
+    p.number as p_number,
+    concat(COALESCE(isc.stock_number, ""), COALESCE(osc.stock_number, "")) as stock_number
+    from stock_change_log scl
+    join product p on p.id = scl.product_id
+    join category c on c.id = p.category_id
+    join repo r on r.id = scl.repo_id
+    left join in_stock_change isc on isc.id = scl.stock_change_id and scl.stock_change_type = "In"
+    left join out_stock_change osc on osc.id = scl.stock_change_id and scl.stock_change_type = "Out"
+    <where>
+      <if test="repoId != null">
+        scl.repo_id = #{repoId}
+      </if>
+      <if test="productName!=null" >
+        and p.name like concat("%", #{productName}, "%")
+      </if>
+      <if test="begin!=null">
+        and date(scl.create_time) &gt;= #{begin}
+      </if>
+      <if test="end!=null">
+        and date(scl.create_time) &lt;= #{end}
+      </if>
+    </where>
+    ORDER BY scl.${orderBy.columnName} ${sort}
+  </select>
+  <select id="getListForProduct" resultMap="log_product_repo">
+    select <include refid="Base_Column_List"/>, p.name as p_name, r.name as r_name, c.name as category_name,
+    p.number as p_number,
+    concat(COALESCE(isc.stock_number, ""), COALESCE(osc.stock_number, "")) as stock_number
+    from stock_change_log scl
+    join product p on p.id = scl.product_id
+    join category c on c.id = p.category_id
+    join repo r on r.id = scl.repo_id
+    left join in_stock_change isc on isc.id = scl.stock_change_id and scl.stock_change_type = "In"
+    left join out_stock_change osc on osc.id = scl.stock_change_id and scl.stock_change_type = "Out"
+    where p.id = #{productId}
+  </select>
+  <select id="getForProject" resultType="com.zifangdt.ch.base.dto.product.output.ProjectOutStockProduct">
+    select
+    p.name as product_name, scl.create_time as date, p.cost as price, scl.count
+    from stock_change_log scl
+    join out_stock_change osc on scl.stock_change_id = osc.id and scl.stock_change_type = "Out"
+    join product p on scl.product_id = p.id
+    where osc.project_id = #{projectId}
+  </select>
+    <select id="getOutNumberForProduct" resultType="java.lang.Long">
+      select ifnull(sum(scl.count), 0)
+      from stock_change_log scl
+      where scl.stock_change_type = "Out" and scl.product_id = #{productId}
+    </select>
+</mapper>

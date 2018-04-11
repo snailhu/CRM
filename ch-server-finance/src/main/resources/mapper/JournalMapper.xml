@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zifangdt.ch.finance.mapper.JournalMapper">
+
+    <resultMap id="rm" type="Journal">
+        <id property="id" column="id"/>
+        <association property="invoice" javaType="Invoice">
+            <id property="id" column="invoice_id"/>
+            <result property="type" column="invoice_type"/>
+            <result property="createTime" column="invoice_create_time"/>
+            <result property="modifyTime" column="invoice_modify_time"/>
+            <result property="createId" column="invoice_create_id"/>
+            <result property="modifyId" column="invoice_modify_id"/>
+        </association>
+    </resultMap>
+
+    <select id="getList" resultType="Journal">
+        select
+            a.id,a.status,a.handle_date,a.type,a.biz_number,a.account_id,a.trader_type,a.trader_id,a.trader_info,a.biz_id,a.biz_name,a.biz_type,a.biz_self_types,a.actual_money,a.create_id,a.create_time,a.modify_id,a.modify_time,a.create_name,a.operate_time,a.operate_id,a.invalid_time,a.planned_date,a.planned_money,a.revenue_or_expense,a.handle_name,a.operate_name,a.invalid_id,a.invalid_name,a.transfer_id,
+            b.name account_name
+        from biz_journal a
+        left join biz_account b on a.account_id=b.id
+        <where>
+            <if test="bizNumber!=null and bizNumber!=''">
+                and a.biz_number like concat('%',#{bizNumber},'%')
+            </if>
+            <if test="type!=null">
+                and a.type=#{type}
+            </if>
+            <if test="accountId!=null">
+                and a.account_id=#{accountId}
+            </if>
+            <if test="bizType!=null">
+                and a.biz_type=#{bizType}
+            </if>
+            <if test="bizSelfType!=null">
+                and FIND_IN_SET(#{bizSelfType},a.biz_self_types) &gt; 0
+            </if>
+            <if test="status!=null">
+                and a.status=#{status}
+            </if>
+            <if test="traderType!=null">
+                and a.trader_type=#{traderType}
+            </if>
+            <if test="traderInfo!=null and traderInfo.size>0">
+                and
+                <foreach collection="traderInfo" item="info" separator=" or " close=")" open="(">
+                    a.trader_info like concat('%',#{info},'%')
+                </foreach>
+            </if>
+            <if test="handleDateStart!=null">
+                and a.handle_date &gt;= #{handleDateStart}
+            </if>
+            <if test="handleDateEnd!=null">
+                and a.handle_date &lt;= #{handleDateEnd}
+            </if>
+            <if test="createDateStart!=null">
+                and date(a.create_time) &gt;= #{createDateStart}
+            </if>
+            <if test="createDateEnd!=null">
+                and date_sub(a.create_time, interval 1 day) &lt;= #{createDateEnd}
+            </if>
+            <if test="operateDateStart!=null">
+                and date(a.operate_time) &gt;= #{operateDateStart}
+            </if>
+            <if test="operateDateEnd!=null">
+                and date_sub(a.operate_time, interval 1 day) &lt;= #{operateDateEnd}
+            </if>
+            <if test="operateName!=null and operateName!=''">
+                and a.operate_name like concat('%',#{operateName},'%')
+            </if>
+            <if test="revenueOrExpense!=null">
+                and a.revenue_or_expense=#{revenueOrExpense}
+            </if>
+            <if test="handleName!=null and handleName!=''">
+                and a.handle_name like concat('%',#{handleName},'%')
+            </if>
+        </where>
+
+    </select>
+
+    <select id="getListForSumMoney" resultType="Journal">
+        select status,actual_money,planned_money,revenue_or_expense
+        from biz_journal
+        <where>
+            and status &lt; 5
+            <if test="bizNumber!=null and bizNumber!=''">
+                and biz_number like concat('%',#{bizNumber},'%')
+            </if>
+            <if test="type!=null">
+                and type=#{type}
+            </if>
+            <if test="accountId!=null">
+                and account_id=#{accountId}
+            </if>
+            <if test="bizType!=null">
+                and biz_type=#{bizType}
+            </if>
+            <if test="bizSelfType!=null">
+                and FIND_IN_SET(#{bizSelfType},biz_self_types) &gt; 0
+            </if>
+            <if test="status!=null">
+                and status=#{status}
+            </if>
+            <if test="traderType!=null">
+                and trader_type=#{traderType}
+            </if>
+            <if test="traderInfo!=null and traderInfo.size>0">
+                and
+                <foreach collection="traderInfo" item="info" separator=" or " close=")" open="(">
+                    trader_info like concat('%',#{info},'%')
+                </foreach>
+            </if>
+            <if test="handleDateStart!=null">
+                and handle_date &gt;= #{handleDateStart}
+            </if>
+            <if test="handleDateEnd!=null">
+                and handle_date &lt;= #{handleDateEnd}
+            </if>
+            <if test="createDateStart!=null">
+                and date(create_time) &gt;= #{createDateStart}
+            </if>
+            <if test="createDateEnd!=null">
+                and date_sub(create_time, interval 1 day) &lt;= #{createDateEnd}
+            </if>
+            <if test="operateDateStart!=null">
+                and date(operate_time) &gt;= #{operateDateStart}
+            </if>
+            <if test="operateDateEnd!=null">
+                and date_sub(operate_time, interval 1 day) &lt;= #{operateDateEnd}
+            </if>
+            <if test="operateName!=null and operateName!=''">
+                and operate_name like concat('%',#{operateName},'%')
+            </if>
+            <if test="revenueOrExpense!=null">
+                and revenue_or_expense=#{revenueOrExpense}
+            </if>
+            <if test="handleName!=null and handleName!=''">
+                and handle_name like concat('%',#{handleName},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="maxContractPeriod" resultType="int">
+        SELECT IFNULL(MAX(contract_period),0)+1
+        FROM biz_journal
+        WHERE biz_type=1
+        AND biz_id=#{contractId}
+        AND type=#{typeOfContractPeriod}
+        and (status=1 or status=2)
+    </select>
+
+    <select id="maxContractCommission" resultType="int">
+        SELECT IFNULL(MAX(contract_commission),0)+1
+        FROM biz_journal
+        WHERE biz_type=1
+        AND biz_id=#{contractId}
+        AND type=#{typeOfContractCommission}
+        and (status=3 or status=4)
+    </select>
+
+    <select id="findContractPeriodRecords" resultType="Journal">
+        SELECT a.id,a.details,a.planned_money,a.contract_period,a.status,
+        a.actual_money,a.operate_time
+        FROM biz_journal a
+        WHERE a.biz_type=1
+        AND a.biz_id=#{contractId}
+        AND a.type=#{typeOfContractPeriod}
+        AND (a.status=1 or a.status=2)
+        ORDER BY a.contract_period
+    </select>
+
+    <select id="findContractCommissionRecords" resultType="Journal">
+        SELECT a.id,a.details,a.planned_money,a.contract_commission,a.status,
+        a.actual_money,a.operate_time
+        FROM biz_journal a
+        WHERE a.biz_type=1
+        AND a.biz_id=#{contractId}
+        AND a.type=#{typeOfContractCommission}
+        AND (a.status=3 or a.status=4)
+        ORDER BY a.contract_commission
+    </select>
+
+    <update id="updatePlannedTimeForInstalment">
+        update biz_journal
+        set planned_date=now()
+        WHERE biz_type=1
+        AND biz_id=#{contractId}
+        AND type=#{typeOfContractPeriod}
+        and details->'$[0].name'=#{name}
+    </update>
+
+    <select id="listForInventory" resultType="Journal">
+        SELECT a.id,a.details,a.type,a.planned_money,a.status,a.create_time,a.biz_id,a.biz_type,
+        a.actual_money
+        FROM biz_journal a
+        WHERE a.status &lt; 5
+        AND a.project_id=#{projectId}
+        ORDER BY a.create_time
+    </select>
+
+    <select id="listForInventoryByType" resultType="Journal">
+        SELECT a.id,a.details,a.type,a.planned_money,a.status,a.create_time,a.biz_id,a.biz_type,
+        a.actual_money
+        FROM biz_journal a
+        WHERE a.status &lt; 5
+        AND a.project_id=#{projectId}
+        AND a.type=#{type}
+        ORDER BY a.create_time
+    </select>
+
+    <select id="relatedRecords" resultType="Journal">
+        select id,biz_number,biz_name,biz_id,biz_type,status,planned_money,actual_money
+        from biz_journal
+        where status &lt; 5
+        and biz_id=#{bizId}
+        and biz_type=#{bizType}
+    </select>
+    
+    <select id="sumDebts" resultType="java.math.BigDecimal">
+        select sum(planned_money)
+        from biz_journal
+        where status=#{status}
+        and trader_type=#{traderType}
+        and trader_id=#{traderId}
+    </select>
+
+    <select id="getDetail" resultMap="rm">
+        select
+          a.id,a.status,a.handle_date,a.type,a.biz_number,a.account_id,a.trader_type,a.trader_id,a.trader_info,a.biz_id,a.biz_name,a.biz_type,a.biz_self_types,a.actual_money,a.create_id,a.create_time,a.modify_id,a.modify_time,a.create_name,a.operate_time,a.operate_id,a.invalid_time,a.planned_date,a.planned_money,a.revenue_or_expense,a.details,a.attachments,a.remark,a.handle_name,a.operate_name,a.invalid_id,a.invalid_name,a.transfer_id,
+          b.name account_name,
+          c.id invoice_id,c.type invoice_type,c.create_id invoice_create_id,c.create_time invoice_create_time,c.modify_id invoice_modify_id,c.modify_time invoice_modify_time,c.billing_time,c.billing_money,c.number,c.photos
+        from biz_journal a
+        left join biz_account b on a.account_id=b.id
+        left join biz_invoice c on a.id=c.journal_id
+        where a.id=#{id}
+    </select>
+
+    <select id="getInvoiceId" resultType="long">
+        select id from biz_invoice
+        where journal_id=#{value}
+    </select>
+    
+    <select id="getByIdsForBulkUpdate" resultType="Journal">
+        select id,status
+        from biz_journal
+        where id in 
+        <foreach collection="list" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <update id="batchUpdateDone">
+        update biz_journal
+        set account_id=#{accountId},
+        handle_date=#{handleDate},
+        status=#{status},
+        modify_id=#{currentUserId},
+        modify_time=now(),
+        operate_id=#{currentUserId},
+        operate_name=#{currentUserName},
+        operate_time=now()
+        <if test="remark!=null">
+            ,remark=#{remark}
+        </if>
+        <if test="attachments!=null">
+            ,attachments=#{attachments}
+        </if>
+        where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        ;
+        <foreach collection="ids" item="id" separator=";" index="i">
+            update biz_journal set actual_money=#{actualMoneys[${i}]} where id=#{id}
+        </foreach>
+    </update>
+    
+    <select id="existsAdjustRecord" resultType="boolean">
+        select count(1)>0
+        from biz_journal
+        where account_id=#{accountId}
+        and type=#{typeOfAdjust}
+    </select>
+</mapper>

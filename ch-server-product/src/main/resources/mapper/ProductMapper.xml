@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.product.mapper.ProductMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.product.entity.Product">
+    <id column="p_id" jdbcType="BIGINT" property="id" />
+    <result column="p_create_id" jdbcType="BIGINT" property="createId" />
+    <result column="p_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="p_modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="p_modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="p_img" jdbcType="VARCHAR" property="img" />
+    <result column="p_name" jdbcType="VARCHAR" property="name" />
+    <result column="p_number" jdbcType="VARCHAR" property="number" />
+    <result column="p_category_id" jdbcType="BIGINT" property="categoryId" />
+    <result column="p_brand" jdbcType="VARCHAR" property="brand" />
+    <result column="p_type" jdbcType="VARCHAR" property="type" />
+    <result column="p_price" jdbcType="DECIMAL" property="price" />
+    <result column="p_cost" jdbcType="DECIMAL" property="cost" />
+    <result column="p_is_active" jdbcType="BIT" property="isActive" />
+    <result column="p_unit_type" jdbcType="INTEGER" property="unitType" />
+    <result column="p_sold_number" jdbcType="INTEGER" property="soldNumber" />
+    <result column="p_alert_number" jdbcType="INTEGER" property="alertNumber" />
+    <result column="p_product_type_id" jdbcType="BIGINT" property="productTypeId" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.zifangdt.ch.base.dto.product.entity.Product">
+    <result column="p_description" jdbcType="LONGVARCHAR" property="description" />
+    <result column="p_remark" jdbcType="LONGVARCHAR" property="remark" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    p.id as p_id, p.create_id as p_create_id, p.create_time as p_create_time, p.modify_id as p_modify_id, 
+    p.modify_time as p_modify_time, p.img as p_img, p.name as p_name, p.number as p_number, 
+    p.category_id as p_category_id, p.brand as p_brand, p.type as p_type, p.price as p_price, 
+    p.cost as p_cost, p.is_active as p_is_active, p.unit_type as p_unit_type, p.sold_number as p_sold_number, 
+    p.alert_number as p_alert_number, p.product_type_id as p_product_type_id
+  </sql>
+  <sql id="Blob_Column_List">
+    p.description as p_description, p.remark as p_remark
+  </sql>
+  <resultMap extends="ResultMapWithBLOBs" id="ProductWithCategory" type="com.zifangdt.ch.base.dto.product.entity.Product">
+    <result column="repo_number" jdbcType="BIGINT" property="repoNumber" />
+    <association javaType="com.zifangdt.ch.base.dto.product.entity.Category" property="category">
+      <id column="c_id" jdbcType="BIGINT" property="id" />
+      <result column="c_name" jdbcType="VARCHAR" property="name" />
+    </association>
+    <association javaType="com.zifangdt.ch.base.dto.product.entity.ProductType" property="productType">
+      <id column="pt_id" jdbcType="BIGINT" property="id" />
+      <result column="pt_name" jdbcType="VARCHAR" property="name" />
+    </association>
+  </resultMap>
+  <select id="queryBy" resultMap="ProductWithCategory">
+    select
+    <include refid="Base_Column_List"/>
+    ,
+    <include refid="Blob_Column_List" />
+    ,
+    ifnull(sum(rp.number), 0) as repo_number,
+    c.id as c_id, c.name as c_name,
+    pt.id as pt_id, pt.name as pt_name
+    from product as p
+    left join repo_product rp on p.id = rp.product_id
+    left join category c on p.category_id = c.id
+    left join product_type pt on p.product_type_id = pt.id
+    left join repo r on rp.repo_id = r.id and r.repo_type = "Normal"
+    <where>
+      <if test="isActive != null">
+        and p.is_active = #{isActive}
+      </if>
+      <if test="id != null">
+        and p.id = #{id}
+      </if>
+      <if test="name != null and name != ''">
+        and (p.name like concat("%", #{name}, "%") or p.id = #{name} or c.name like concat("%", #{name}, "%"))
+      </if>
+      <if test="name1 != null and name != ''">
+        and (p.name like concat("%", #{name1}, "%") or p.brand like concat("%", #{name1}, "%") or p.number like concat("%", #{name1}, "%") or p.type like concat("%", #{name1}, "%"))
+      </if>
+      <if test="category != null">
+        and c.id = #{category}
+      </if>
+    </where>
+    GROUP BY p.id
+    ORDER BY p.${or derBy.columnName} ${sort}
+  </select>
+  <select id="queryDetail" resultMap="ProductWithCategory">
+    select
+    <include refid="Base_Column_List"/>
+    ,
+    <include refid="Blob_Column_List" />
+    ,
+    c.id as c_id, c.name as c_name,
+    sum(rp.number) as repo_number,
+    pt.id as pt_id, pt.name as pt_name
+    from product p
+    left join repo_product as rp on rp.product_id = p.id
+    left join category c on p.category_id = c.id
+    left join product_type pt on p.product_type_id = pt.id
+    where p.id = #{id}
+  </select>
+  <select id="batchDelete">
+    delete from product
+    where id in
+    <foreach close=")" collection="ids" item="id" open="(" separator=",">
+      #{id}
+    </foreach>
+  </select>
+  <select id="toggleActive">
+    update product
+    set is_active = !is_active where id = #{id}
+  </select>
+  <select id="isProductCategoryExist" resultType="java.lang.Boolean">
+    select exists(select 1 from product p where p.category_id = #{categoryId});
+  </select>
+  <select id="findByNumber" resultType="com.zifangdt.ch.base.dto.product.entity.Product">
+    select *
+    from product
+    where number = #{number} limit 1
+  </select>
+  <select id="getCategoryCount" resultType="java.lang.Long">
+    select count(1)
+    from product
+    where category_id = #{categoryId}
+  </select>
+  <select id="getNormalStockNumber" resultType="java.lang.Integer">
+    select ifnull(sum(rp.available_number), 0)
+    from product p
+    join repo_product rp on rp.product_id = p.id
+    join repo r on rp.repo_id = r.id
+    where r.repo_type = "Normal" and p.id = #{productId}
+  </select>
+  <select id="findByIds" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from product p
+    where id in
+    <foreach collection="ids" item="id" open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+  </select>
+  <update id="changeCategoryId">
+    update product p set p.category_id = #{destCategoryId}
+    where p.category_id = #{sourceCategoryId}
+  </update>
+  <update id="batchChangeCategory">
+    update product
+    set product.category_id = #{categoryId}
+    where product.id in
+    <foreach close=")" collection="productIds" item="productId" open="(" separator=",">
+      #{productId}
+    </foreach>
+  </update>
+  <update id="updateAlertNumber">
+    update product
+    set product.alert_number = #{number}
+    where product.id in
+    <foreach close=")" collection="productIds" item="productId" open="(" separator=",">
+      #{productId}
+    </foreach>
+  </update>
+
+
+</mapper>

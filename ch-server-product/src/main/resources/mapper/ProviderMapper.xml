@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.product.mapper.ProviderMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.product.entity.Provider">
+    <id column="pv_id" jdbcType="BIGINT" property="id" />
+    <result column="pv_create_id" jdbcType="BIGINT" property="createId" />
+    <result column="pv_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="pv_modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="pv_modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="pv_name" jdbcType="VARCHAR" property="name" />
+    <result column="pv_contact" jdbcType="VARCHAR" property="contact" />
+    <result column="pv_phone" jdbcType="VARCHAR" property="phone" />
+    <result column="pv_bank" jdbcType="VARCHAR" property="bank" />
+    <result column="pv_bank_account_name" jdbcType="VARCHAR" property="bankAccountName" />
+    <result column="pv_bank_account_number" jdbcType="VARCHAR" property="bankAccountNumber" />
+    <result column="pv_remark" jdbcType="VARCHAR" property="remark" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    pv.id as pv_id, pv.create_id as pv_create_id, pv.create_time as pv_create_time, pv.modify_id as pv_modify_id, 
+    pv.modify_time as pv_modify_time, pv.name as pv_name, pv.contact as pv_contact, pv.phone as pv_phone, 
+    pv.bank as pv_bank, pv.bank_account_name as pv_bank_account_name, pv.bank_account_number as pv_bank_account_number, 
+    pv.remark as pv_remark
+  </sql>
+  <delete id="deleteOne">
+    delete from provider where id = #{id}
+  </delete>
+  <delete id="deleteMulti">
+    delete from provider where id in
+    <foreach collection="ids" item="id" open="(" close=")" separator=",">
+      #{id}
+    </foreach>
+  </delete>
+
+
+  <select id="findBy" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List" />
+    from provider as pv
+    <where>
+      <if test="nameOrId != null">
+        id = #{nameOrId} or name like concat("%", #{nameOrId}, "%")
+      </if>
+      <if test="createIds != null">
+        or create_id in
+        <foreach collection="createIds" item="id" separator="," open="(" close=")">
+          #{id}
+        </foreach>
+      </if>
+    </where>
+  </select>
+</mapper>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zifangdt.ch.contract.mapper.ContractMapper">
+
+    <resultMap id="rm" type="Contract">
+        <id column="id" property="id"/>
+        <association property="accounting1" javaType="Accounting1">
+            <id column="accounting1_contract_id" property="contractId"/>
+            <result column="accounting1_remark" property="remark"/>
+        </association>
+        <association property="accounting2" javaType="Accounting2">
+            <id column="accounting2_contract_id" property="contractId"/>
+            <result column="accounting2_remark" property="remark"/>
+        </association>
+        <association property="productDetail" javaType="ProductDetail">
+            <id column="product_detail_contract_id" property="contractId"/>
+            <result column="product_detail_remark" property="remark"/>
+        </association>
+        <collection property="instalments" ofType="Instalment">
+            <id column="instalment_id" property="id"/>
+            <result column="instalment_contract_id" property="contractId"/>
+        </collection>
+    </resultMap>
+
+    <select id="getDetail" resultMap="rm">
+        <include refid="selectSql"/>
+        WHERE a.id=#{id}
+    </select>
+
+    <!-- all -->
+    <select id="getDetails" resultMap="rm">
+        <include refid="selectSql"/>
+        WHERE a.id in
+        <foreach collection="ids" separator="," item="id" open="(" close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <sql id="selectSql">
+        SELECT
+        a.id,a.number,a.print_number,a.types,a.customer_id,a.bills,a.money,a.pay_style,a.remark,a.advance,a.sign_time,a.create_id,a.create_time,a.modify_id,a.modify_time,a.owner,a.owner_name,a.process_id,a.invalid_reason,a.has_advance,a.full,a.invalidated,a.project_id,a.customer_name,a.bill_names,a.customer_source_relation_id,
+        b.contract_id accounting1_contract_id,b.retail_price,b.type,b.floor_price,b.has_gift,b.gift_cost,b.design_cost,b.extend_service_cost,b.total_cost,b.remark accounting1_remark,
+        c.contract_id accounting2_contract_id,c.royalty_rate,c.project_commission,c.remark accounting2_remark,
+        d.id instalment_id,d.contract_id instalment_contract_id,d.serial_number,d.contract_type,d.procedure,d.node,d.planned_money,
+        e.contract_id product_detail_contract_id,e.products,e.attachments,e.remark product_detail_remark
+        FROM biz_contract a
+        LEFT JOIN biz_contract_accounting1 b ON a.id=b.contract_id
+        LEFT JOIN biz_contract_accounting2 c ON a.id=c.contract_id
+        LEFT JOIN biz_contract_instalment d ON a.id=d.contract_id
+        LEFT JOIN biz_contract_product_detail e ON a.id=e.contract_id
+    </sql>
+
+    <select id="findList" resultType="Contract">
+        SELECT
+        a.id,a.print_number,a.project_id,a.number,a.customer_id,a.customer_name,a.money,a.bills,a.create_time,a.owner,a.owner_name,a.types
+        FROM biz_contract a
+        where a.invalidated=0
+        <choose>
+            <when test="owners==null">
+                and 1=1
+            </when>
+            <when test="owners.size()==0">
+                and 1=2
+            </when>
+            <when test="owners.size()==1">
+                and a.owner=#{owners[0]}
+            </when>
+            <otherwise>
+                and a.owner in
+                <foreach collection="owners" item="owner" open="(" close=")" separator=",">
+                    #{owner}
+                </foreach>
+            </otherwise>
+        </choose>
+        <if test="search!=null and search!=''">
+            and (a.print_number like concat('%',#{search},'%') or a.owner_name like concat('%',#{search},'%'))
+        </if>
+        <if test="customerId!=null">
+            and customer_id=#{customerId}
+        </if>
+        ORDER BY a.${orderBy.columnName} ${sort}
+    </select>
+
+    <update id="setInvalidReasonBatch">
+        update biz_contract
+        set invalidated=1,invalid_reason=#{reason}
+        where id in
+        <foreach collection="ids" separator="," open="(" close=")" item="id">
+            #{id}
+        </foreach>
+        and invalid_reason is null
+    </update>
+
+    <select id="numberExists" resultType="boolean">
+        select count(1)>0
+        from biz_contract
+        where number=#{number} and invalidated=0
+    </select>
+
+    <select id="findApproved" resultType="Contract">
+        select id,print_number,types,number,customer_name,customer_id,bills,bill_names,project_id
+        from biz_contract
+        where invalidated=0
+        and project_id is not null
+        <if test="search!=null and search!=''">
+            and (print_number like concat('%',#{search},'%') or number like concat('%',#{search},'%'))
+        </if>
+        <if test="customerName!=null and customerName!=''">
+            and customer_name=#{customerName}
+        </if>
+    </select>
+
+    <select id="getDetailByProjectId" resultMap="rm">
+        <include refid="selectSql"/>
+        WHERE a.project_id=#{projectId}
+    </select>
+
+    <select id="existsCustomer" resultType="boolean">
+        select count(1)>0 from biz_contract
+        where customer_id=#{customerId} and invalidated=0
+    </select>
+
+    <select id="findByCustomerId" resultType="Contract">
+        select id,print_number,types,number,customer_name,customer_id,bills,bill_names,project_id
+        from biz_contract
+        where invalidated=0
+        and customer_id=#{customerId}
+    </select>
+
+    <select id="findSignedCustomerIdsInDays" resultType="long">
+        SELECT DISTINCT customer_id
+        FROM biz_contract
+        WHERE invalidated=0
+        AND DATE_SUB(CURDATE(), INTERVAL #{days} DAY) &lt;= DATE(create_time)
+    </select>
+
+    <select id="countByCustomerId" resultType="long">
+        select count(1)
+        from biz_contract
+        where invalidated=0
+        and customer_id=#{customerId}
+    </select>
+
+    <select id="findRepurchasedCustomerIds" resultType="long">
+        SELECT customer_id
+        FROM biz_contract
+        WHERE invalidated=0
+        GROUP BY customer_id
+        HAVING COUNT(1)>1
+    </select>
+</mapper>

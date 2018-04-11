@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.product.mapper.OutStockChangeMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.product.entity.OutStockChange">
+    <id column="osc_id" jdbcType="BIGINT" property="id"/>
+    <result column="osc_create_id" jdbcType="BIGINT" property="createId"/>
+    <result column="osc_create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    <result column="osc_modify_id" jdbcType="BIGINT" property="modifyId"/>
+    <result column="osc_modify_time" jdbcType="TIMESTAMP" property="modifyTime"/>
+    <result column="osc_repo_id" jdbcType="BIGINT" property="repoId"/>
+    <result column="osc_stock_number" jdbcType="VARCHAR" property="stockNumber"/>
+    <result column="osc_stock_status" jdbcType="VARCHAR" property="stockStatus"/>
+    <result column="osc_out_stock_type" jdbcType="VARCHAR" property="outStockType"/>
+    <result column="osc_stock_time" jdbcType="TIMESTAMP" property="stockTime"/>
+    <result column="osc_logistic_number" jdbcType="VARCHAR" property="logisticNumber"/>
+    <result column="osc_logistic_company" jdbcType="VARCHAR" property="logisticCompany"/>
+    <result column="osc_deliver_time" jdbcType="TIMESTAMP" property="deliverTime"/>
+    <result column="osc_contract_id" jdbcType="BIGINT" property="contractId"/>
+    <result column="osc_project_id" jdbcType="BIGINT" property="projectId"/>
+    <result column="osc_procedure_id" jdbcType="BIGINT" property="procedureId"/>
+    <result column="osc_customer_name" jdbcType="VARCHAR" property="customerName"/>
+    <result column="osc_customer_address" jdbcType="VARCHAR" property="customerAddress"/>
+    <result column="osc_customer_contact" jdbcType="VARCHAR" property="customerContact"/>
+    <result column="osc_logistic_cost" jdbcType="INTEGER" property="logisticCost"/>
+    <result column="osc_dealer_id" jdbcType="BIGINT" property="dealerId"/>
+    <result column="osc_seller_user_id" jdbcType="BIGINT" property="sellerUserId"/>
+    <result column="osc_price" jdbcType="INTEGER" property="price"/>
+    <result column="osc_relate_name" jdbcType="INTEGER" property="relateName"/>
+    <result column="osc_items" jdbcType="VARCHAR" property="items"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    osc.id as osc_id, osc.create_id as osc_create_id, osc.create_time as osc_create_time,
+    osc.modify_id as osc_modify_id, osc.modify_time as osc_modify_time, osc.repo_id as osc_repo_id,
+    osc.stock_number as osc_stock_number, osc.stock_status as osc_stock_status, osc.out_stock_type as
+    osc_out_stock_type,
+    osc.stock_time as osc_stock_time, osc.logistic_number as osc_logistic_number, osc.logistic_company as
+    osc_logistic_company,
+    osc.deliver_time as osc_deliver_time, osc.contract_id as osc_contract_id, osc.project_id as osc_project_id,
+    osc.procedure_id as osc_procedure_id,
+    osc.customer_name as osc_customer_name,
+    osc.customer_address as osc_customer_address, osc.customer_contact as osc_customer_contact,
+    osc.logistic_cost as osc_logistic_cost, osc.dealer_id as osc_dealer_id, osc.seller_user_id as osc_seller_user_id,
+    osc.price as osc_price, osc.relate_name as osc_relate_name, osc.items as osc_items
+  </sql>
+  <select id="countFor" resultType="java.lang.Long">
+    select count(1)
+    from out_stock_change where date(create_time) = #{date}
+  </select>
+  <select id="findBy" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from out_stock_change osc
+    <where>
+      <if test="repoId != null">
+        osc.repo_id = #{repoId}
+      </if>
+      <if test="date != null">
+        and date(osc.create_time) = #{date}
+      </if>
+      <if test="number != null">
+        and osc.stock_number like concat("%", #{number}, "%")
+      </if>
+      <if test="type != null">
+        and osc.out_stock_type = #{type}
+      </if>
+    </where>
+    order by create_time desc
+  </select>
+  <select id="findForProject" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from out_stock_change osc
+    where osc.project_id = #{projectId}
+  </select>
+    <select id="findPreOut" resultMap="BaseResultMap">
+      select <include refid="Base_Column_List"/>
+      from out_stock_change osc
+      where osc.stock_status = "PreOutStock"
+    </select>
+</mapper>

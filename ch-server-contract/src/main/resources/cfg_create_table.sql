@@ -1,0 +1,56 @@
+--
+-- 合同配置相关table建表
+--
+
+CREATE TABLE cfg_contract_step_definition (
+  id BIGINT(20) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY(id),
+  create_id BIGINT(20) DEFAULT NULL,
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  modify_id BIGINT(20) DEFAULT NULL,
+  modify_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+
+  name VARCHAR(32) NOT NULL COMMENT '步骤名称',
+  operator BIGINT(20) NOT NULL COMMENT '执行人id',
+  sort TINYINT(2) NOT NULL COMMENT '排序'
+) COMMENT '合同审批流程';
+
+CREATE TABLE cfg_bool_config (
+  id BIGINT(20) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY(id),
+  create_id BIGINT(20) DEFAULT NULL,
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  modify_id BIGINT(20) DEFAULT NULL,
+  modify_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+
+  name VARCHAR(64) NOT NULL COMMENT '配置名称',
+  description VARCHAR(128) NOT NULL COMMENT '配置描述',
+  is_on TINYINT(1) DEFAULT 0 COMMENT '是否打开'
+) COMMENT '开关型配置';
+
+CREATE TABLE cfg_user_config(
+  id BIGINT(20) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY(id),
+  create_id BIGINT(20) DEFAULT NULL,
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  modify_id BIGINT(20) DEFAULT NULL,
+  modify_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+
+  user_orga VARCHAR(256) DEFAULT NULL COMMENT '用户或者组织(crm_user_orga)的id列表,用,隔开',
+  name VARCHAR(64) NOT NULL UNIQUE COMMENT '配置名称',
+  description VARCHAR(128) NOT NULL COMMENT '配置描述'
+) COMMENT "合同权限配置，哪些用户或者部门有权限";
+
+CREATE TABLE cfg_user_orga(
+  id BIGINT(20) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY(id),
+  create_id BIGINT(20) DEFAULT NULL,
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  modify_id BIGINT(20) DEFAULT NULL,
+  modify_time DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+
+  user_id BIGINT(20) DEFAULT NULL COMMENT '用户id',
+  organization_id BIGINT(20) DEFAULT NULL COMMENT '组织id',
+  is_organization_charger TINYINT(1) DEFAULT 0 COMMENT '是否只通知部门负责人',
+  is_user TINYINT(1) DEFAULT 1 COMMENT '由人审批还是部门审批，1:用户审批，0:部门审批'
+) COMMENT "用户或组织";

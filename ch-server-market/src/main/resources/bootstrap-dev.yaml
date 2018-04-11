@@ -1,0 +1,10 @@
+spring:
+  cloud:
+    config:
+      profile: dev
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://192.168.1.14:1111/eureka/
+

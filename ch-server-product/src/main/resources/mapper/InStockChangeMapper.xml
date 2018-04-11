@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.product.mapper.InStockChangeMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.product.entity.InStockChange">
+    <id column="isc_id" jdbcType="BIGINT" property="id"/>
+    <result column="isc_create_id" jdbcType="BIGINT" property="createId"/>
+    <result column="isc_create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    <result column="isc_modify_id" jdbcType="BIGINT" property="modifyId"/>
+    <result column="isc_modify_time" jdbcType="TIMESTAMP" property="modifyTime"/>
+    <result column="isc_repo_id" jdbcType="BIGINT" property="repoId"/>
+    <result column="isc_in_stock_type" jdbcType="VARCHAR" property="inStockType"/>
+    <result column="isc_purchase_id" jdbcType="BIGINT" property="purchaseId"/>
+    <result column="isc_stock_number" jdbcType="VARCHAR" property="stockNumber"/>
+    <result column="isc_project_id" jdbcType="BIGINT" property="projectId"/>
+    <result column="isc_relate_name" jdbcType="VARCHAR" property="relateName"/>
+    <result column="isc_stock_status" jdbcType="VARCHAR" property="stockStatus"/>
+    <result column="isc_items" jdbcType="VARCHAR" property="items"/>
+  </resultMap>
+  <sql id="Base_Column_List">
+    isc.id as isc_id, isc.create_id as isc_create_id, isc.create_time as isc_create_time,
+    isc.modify_id as isc_modify_id, isc.modify_time as isc_modify_time, isc.repo_id as isc_repo_id,
+    isc.in_stock_type as isc_in_stock_type, isc.purchase_id as isc_purchase_id, isc.stock_number as isc_stock_number,
+    isc.project_id as isc_project_id, isc.relate_name as isc_relate_name,
+    isc.stock_status as isc_stock_status, isc.items as isc_items
+  </sql>
+  <select id="countFor" resultType="java.lang.Long">
+    select count(1)
+    from in_stock_change where date(create_time) = #{date}
+  </select>
+  <select id="getByPurchase" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from in_stock_change isc
+    where isc.purchase_id = #{purchaseId}
+  </select>
+  <select id="findBy" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from in_stock_change isc
+    <where>
+      <if test="repoId != null">
+        isc.repo_id = #{repoId}
+      </if>
+      <if test="date != null">
+        and date(isc.create_time) = #{date}
+      </if>
+      <if test="number != null">
+        and isc.stock_number like concat("%", #{number}, "%")
+      </if>
+      <if test="type != null">
+        and isc.in_stock_type = #{type}
+      </if>
+    </where>
+    order by create_time desc
+  </select>
+  <select id="findForPurchase" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from in_stock_change isc
+    where isc.purchase_id = #{purchaseId}
+
+  </select>
+</mapper>

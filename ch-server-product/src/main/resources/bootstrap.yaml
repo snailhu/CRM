@@ -1,0 +1,27 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: product-server
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        serviceId: config-server
+      label: master
+      failFast: true
+      username: config
+      password: 55c94865-91f3-4285-8938-19cf07e02174
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    serviceUrl:
+      defaultZone: http://${eureka.server:192.168.1.14:1111}/eureka/
+
+server:
+  port: 8082
+
+management:
+  security:
+    enabled: false

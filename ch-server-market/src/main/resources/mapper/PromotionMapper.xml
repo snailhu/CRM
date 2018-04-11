@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zifangdt.ch.market.mapper.PromotionMapper">
+  <resultMap id="BaseResultMap" type="com.zifangdt.ch.base.dto.market.Promotion">
+    <id column="p_id" jdbcType="BIGINT" property="id" />
+    <result column="p_create_id" jdbcType="BIGINT" property="createId" />
+    <result column="p_create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="p_modify_id" jdbcType="BIGINT" property="modifyId" />
+    <result column="p_modify_time" jdbcType="TIMESTAMP" property="modifyTime" />
+    <result column="p_name" jdbcType="VARCHAR" property="name" />
+    <result column="p_status" jdbcType="VARCHAR" property="status" />
+    <result column="p_url" jdbcType="VARCHAR" property="url" />
+    <result column="p_type" jdbcType="VARCHAR" property="type" />
+  </resultMap>
+  <resultMap extends="BaseResultMap" id="ResultMapWithBLOBs" type="com.zifangdt.ch.base.dto.market.Promotion">
+    <result column="p_components" jdbcType="LONGVARCHAR" property="components" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    p.id as p_id, p.create_id as p_create_id, p.create_time as p_create_time, p.modify_id as p_modify_id, 
+    p.modify_time as p_modify_time, p.name as p_name, p.status as p_status, p.url as p_url, p.type as p_type,
+    p.components as p_components
+  </sql>
+  <sql id="Blob_Column_List">
+    pd.content as pd_content
+  </sql>
+  <select id="findBy" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from promotion p
+    <where>
+      <if test="type != null">
+        p.type = #{type}
+      </if>
+      <if test="status != null">
+        and p.status = #{status}
+      </if>
+    </where>
+    order by p.${orderBy.columnName} ${sort}
+  </select>
+  <select id="findUserPromotion" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from promotion p
+    join promotion_affiliate pa on p.id = pa.promotion_id
+    where pa.user_id = #{userId}
+  </select>
+  <select id="selectById" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from promotion p where p.id = #{id}
+  </select>
+</mapper>
